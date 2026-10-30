@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EUKO Dashboard</title>
+  <meta name="claude:viewport-fit-sides" content="cover">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="index1.css">
+</head>
+<body>
+<div class="bg" aria-hidden="true"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div><div class="blob b4"></div><div class="grain"></div></div>
+
+<div class="app">
+  <header class="top glass">
+    <div class="brand"><span class="logo-m" role="img" aria-label="EUKO"><i class="ld"></i><i class="ll"></i></span><span>Panel EUKO</span></div>
+    <label class="gsearch" aria-label="Buscar cliente"><svg class="i" viewBox="0 0 24 24" id="i-s"></svg><input id="gsearch" type="search" placeholder="Buscar un cliente por nombre, teléfono o plan" autocomplete="off"></label>
+    <div class="sp"></div>
+    <span class="dchip num" id="dchip"></span>
+    <button class="iconbtn" data-act="hide" id="hidebtn" aria-label="Ocultar valores" aria-pressed="false" title="Ocultar valores"></button>
+    <button class="iconbtn" data-act="theme" aria-label="Cambiar tema claro u oscuro" id="themebtn"></button>
+  </header>
+
+  <div class="shell">
+    <nav class="rail glass" id="rail" aria-label="Navegación lateral"></nav>
+    <main class="stage glass"><div class="view enter" id="view"></div></main>
+  </div>
+</div>
+
+<div class="dockwrap"><nav class="dock glass" id="dock" aria-label="Secciones"></nav></div>
+<div id="overlay" role="dialog" aria-modal="true"></div>
+<div class="tip" id="tip"></div>
+<div class="toast" id="toast" role="status"></div>
+<script src="index1.js"></script>
+</body>
+</html>
