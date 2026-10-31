@@ -103,6 +103,11 @@ try{var su=localStorage.getItem('euko-user');if(su){user.value=su;remember.check
 
 /* mensajes y efectos */
 function say(t,k){msg.textContent=t||'';msg.className='message'+(k?' '+k:'')}
+/* avisos que llegan desde el panel (sesión cerrada o vencida) */
+try{var qs=new URLSearchParams(location.search).get('s');
+  if(qs==='expirada')say('Tu sesión se cerró por inactividad. Ingresa de nuevo.','success');
+  else if(qs==='salio')say('Cerraste sesión correctamente.','success');
+  if(qs)history.replaceState(null,'',location.pathname)}catch(e){}
 function shake(){panel.classList.remove('shake');void panel.offsetWidth;panel.classList.add('shake');panel.classList.add('err');setTimeout(function(){panel.classList.remove('shake')},500);setTimeout(function(){panel.classList.remove('err')},1600)}
 function mark(el,on){el.closest('.field').classList.toggle('bad',on);el.setAttribute('aria-invalid',on?'true':'false')}
 [user,pass].forEach(function(el){el.addEventListener('input',function(){mark(el,false);if(msg.classList.contains('error')&&!lockT)say('')})});
@@ -149,7 +154,7 @@ async function authenticate(username,password,rem){
   if(!CONFIG.API_URL){
     await wait(700);
     var h=await sha256(username.trim()+'\n'+password.trim()+'\nEUKO');
-    if(h===ACCESS_HASH){try{sessionStorage.setItem('euko-auth','ok')}catch(e){}return {ok:true,name:username}}
+    if(h===ACCESS_HASH)return {ok:true,name:username.trim()};
     return {ok:false,msg:'Usuario o contraseña incorrectos.'};
   }
   var r=await fetch(CONFIG.API_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify({username:username,password:password,remember:rem})});
@@ -161,11 +166,12 @@ async function authenticate(username,password,rem){
 }
 
 function success(res){
+  try{var n=Date.now();sessionStorage.setItem('euko-auth',JSON.stringify({name:res.name,t:n,a:n}))}catch(e){}
   try{if(remember.checked)localStorage.setItem('euko-user',user.value.trim());else localStorage.removeItem('euko-user')}catch(e){}
   say('');panel.classList.add('ok');
   form.hidden=true;$('.lead').hidden=true;$('#ttl').hidden=true;
   var d=$('#done');d.hidden=false;
-  if(CONFIG.DASHBOARD_URL){$('#doneTxt').textContent='Entrando al panel…';setTimeout(function(){location.href=CONFIG.DASHBOARD_URL},1500)}
+  if(CONFIG.DASHBOARD_URL){$('#doneTxt').textContent='Entrando al panel…';setTimeout(function(){location.replace(CONFIG.DASHBOARD_URL)},1500)}
   else{$('#doneTxt').textContent='Así se verá al entrar. Aquí te llevaría a tu panel.';$('#again').hidden=false}
 }
 $('#again').addEventListener('click',function(){
