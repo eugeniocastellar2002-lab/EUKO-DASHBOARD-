@@ -21,8 +21,9 @@ const DIASL=['domingo','lunes','martes','miércoles','jueves','viernes','sábado
 const fdate=s=>{if(!isDate(s))return '—';const d=parse(s);return d.getDate()+' '+MES[d.getMonth()]+' '+d.getFullYear()};
 const group=n=>String(n).replace(/\B(?=(\d{3})+(?!\d))/g,'.');
 let HIDE=false;
-const cop=n=>{n=Number(n)||0;return HIDE?'$ ••••••':(n<0?'-':'')+'$'+group(Math.abs(Math.round(n)))};
-const kfmt=n=>{n=Number(n)||0;if(HIDE)return '•••';const a=Math.abs(n);if(a>=1e6)return (n/1e6).toFixed(a>=1e7?0:1).replace('.',',')+' M';if(a>=1e3)return Math.round(n/1e3)+' k';return String(Math.round(n))};
+const copRaw=n=>{n=Number(n)||0;return (n<0?'-':'')+'$'+group(Math.abs(Math.round(n)))};
+const cop=n=>'<span class="mv">'+copRaw(n)+'</span>';
+const kfmt=n=>{n=Number(n)||0;const a=Math.abs(n);if(a>=1e6)return (n/1e6).toFixed(a>=1e7?0:1).replace('.',',')+' M';if(a>=1e3)return Math.round(n/1e3)+' k';return String(Math.round(n))};
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
 const initials=n=>String(n).split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase();
 const COLORS=['var(--c1)','var(--c2)','var(--c3)','var(--c4)','var(--c5)','var(--c6)'];
@@ -217,7 +218,7 @@ const VIEWS=[
 
 /* ===== componentes ===== */
 const statusPill=s=>'<span class="pill '+(s==='Activo'||s==='Completado'?'ok':s==='Pendiente'?'warn':'off')+'">'+esc(s)+'</span>';
-const count=(v,fmt)=>'<span class="num" data-count="'+Math.round(v)+'" data-fmt="'+(fmt||'cop')+'">'+(fmt==='n'?Math.round(v):cop(v))+'</span>';
+const count=(v,fmt)=>'<span class="num'+(fmt==='n'?'':' mv')+'" data-count="'+Math.round(v)+'" data-fmt="'+(fmt||'cop')+'">'+(fmt==='n'?Math.round(v):copRaw(v))+'</span>';
 const head=(t,sub,acts)=>'<header class="vhead rev" style="--d:0"><div><h1>'+t+'</h1><p>'+sub+'</p></div><div class="acts">'+(acts||'')+'</div></header>';
 const demoBanner=()=>demoOn()?'<div class="banner rev" style="--d:1"><span><b>Datos de ejemplo.</b> Así se verá tu panel. Desaparecen cuando registres tu primer cliente, movimiento o tarea.</span><button class="btn sm ghost" data-act="hideDemo">Ocultar ejemplos</button></div>':'';
 const niceMax=v=>{if(v<=0)return 1;const p=Math.pow(10,Math.floor(Math.log10(v)));const f=v/p;return (f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10)*p};
@@ -230,10 +231,10 @@ function barChart(ms){
   const mx=niceMax(Math.max(1,...ms.map(m=>Math.max(m.inc,m.exp))));
   const gw=(W-pl-pr)/ms.length,bw=Math.min(15,gw*.3),y=v=>pt+(H-pt-pb)*(1-v/mx);
   let s='<svg class="chart" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Ingresos y egresos por mes">';
-  for(let i=0;i<=4;i++){const v=mx/4*i,yy=y(v);s+='<line class="gridl" x1="'+pl+'" x2="'+(W-pr)+'" y1="'+yy+'" y2="'+yy+'"/><text x="'+(pl-8)+'" y="'+(yy+3)+'" text-anchor="end">'+kfmt(v)+'</text>'}
+  for(let i=0;i<=4;i++){const v=mx/4*i,yy=y(v);s+='<line class="gridl" x1="'+pl+'" x2="'+(W-pr)+'" y1="'+yy+'" y2="'+yy+'"/><text class="mv" x="'+(pl-8)+'" y="'+(yy+3)+'" text-anchor="end">'+kfmt(v)+'</text>'}
   ms.forEach((m,i)=>{
     const cx=pl+gw*i+gw/2,hi=(H-pt-pb)*m.inc/mx,he=(H-pt-pb)*m.exp/mx;
-    s+='<g class="bar-g" tabindex="0" role="button" aria-label="'+esc(mlong(m.key))+': ver movimientos"'+drillA('movimientos',{txMonth:m.key,txType:'todos'})+tipA(mlong(m.key)+'\nIngresos '+cop(m.inc)+'\nEgresos '+cop(m.exp),'Toca otra vez para ver los movimientos')+'>'
+    s+='<g class="bar-g" tabindex="0" role="button" aria-label="'+esc(mlong(m.key))+': ver movimientos"'+drillA('movimientos',{txMonth:m.key,txType:'todos'})+tipA(mlong(m.key)+'\nIngresos '+copRaw(m.inc)+'\nEgresos '+copRaw(m.exp),'Toca otra vez para ver los movimientos')+'>'
       +'<rect class="hit" x="'+(cx-gw/2)+'" y="'+pt+'" width="'+gw+'" height="'+(H-pt-pb)+'"/>'
       +'<rect class="b" style="--i:'+i+'" x="'+(cx-bw-1.5)+'" y="'+(H-pb-hi)+'" width="'+bw+'" height="'+Math.max(hi,1)+'" rx="5" fill="var(--c1)"/>'
       +'<rect class="b" style="--i:'+(i+.5)+'" x="'+(cx+1.5)+'" y="'+(H-pb-he)+'" width="'+bw+'" height="'+Math.max(he,1)+'" rx="5" fill="var(--c5)"/>'
@@ -248,7 +249,7 @@ function lineChart(ms){
   const X=i=>n>1?pl+step*i:(W+pl-pr)/2,Y=v=>pt+(H-pt-pb)*(1-v/mx);
   const pi=ms.map((m,i)=>[X(i),Y(m.inc)]),pe=ms.map((m,i)=>[X(i),Y(m.exp)]);
   let s='<svg class="chart" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Ingresos y egresos en el periodo"><defs><linearGradient id="ga" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--c1)" stop-opacity=".35"/><stop offset="1" stop-color="var(--c1)" stop-opacity="0"/></linearGradient></defs>';
-  for(let i=0;i<=4;i++){const v=mx/4*i,yy=Y(v);s+='<line class="gridl" x1="'+pl+'" x2="'+(W-pr)+'" y1="'+yy+'" y2="'+yy+'"/><text x="'+(pl-8)+'" y="'+(yy+3)+'" text-anchor="end">'+kfmt(v)+'</text>'}
+  for(let i=0;i<=4;i++){const v=mx/4*i,yy=Y(v);s+='<line class="gridl" x1="'+pl+'" x2="'+(W-pr)+'" y1="'+yy+'" y2="'+yy+'"/><text class="mv" x="'+(pl-8)+'" y="'+(yy+3)+'" text-anchor="end">'+kfmt(v)+'</text>'}
   if(n>1){const di=smooth(pi);
     s+='<path class="areafade" d="'+di+' L'+X(n-1)+' '+(H-pb)+' L'+X(0)+' '+(H-pb)+'Z" fill="url(#ga)"/>';
     s+='<path class="draw" pathLength="1" d="'+smooth(pe)+'" fill="none" stroke="var(--c5)" stroke-width="2.5" stroke-linecap="round"/>';
@@ -256,7 +257,7 @@ function lineChart(ms){
   const every=n>8?2:1,hw=Math.max(step,30);
   ms.forEach((m,i)=>{
     if(i%every===0||i===n-1)s+='<text x="'+X(i)+'" y="'+(H-6)+'" text-anchor="middle">'+mlabel(m.key)+'</text>';
-    s+='<g class="bar-g" tabindex="0" role="button" aria-label="'+esc(mlong(m.key))+': ver movimientos"'+drillA('movimientos',{txMonth:m.key,txType:'todos'})+tipA(mlong(m.key)+'\nIngresos '+cop(m.inc)+'\nEgresos '+cop(m.exp)+'\nUtilidad '+cop(m.inc-m.exp),'Toca otra vez para ver los movimientos')+'>'
+    s+='<g class="bar-g" tabindex="0" role="button" aria-label="'+esc(mlong(m.key))+': ver movimientos"'+drillA('movimientos',{txMonth:m.key,txType:'todos'})+tipA(mlong(m.key)+'\nIngresos '+copRaw(m.inc)+'\nEgresos '+copRaw(m.exp)+'\nUtilidad '+copRaw(m.inc-m.exp),'Toca otra vez para ver los movimientos')+'>'
       +'<rect class="hit" x="'+(X(i)-hw/2)+'" y="'+pt+'" width="'+hw+'" height="'+(H-pt-pb)+'"/>'
       +'<line class="gl" x1="'+X(i)+'" x2="'+X(i)+'" y1="'+pt+'" y2="'+(H-pb)+'"/>'
       +'<circle class="gd" cx="'+X(i)+'" cy="'+pi[i][1]+'" r="5" fill="var(--c1)" stroke="var(--bg)" stroke-width="2"/><circle class="gd" cx="'+X(i)+'" cy="'+pe[i][1]+'" r="4.5" fill="var(--c5)" stroke="var(--bg)" stroke-width="2"/></g>';
@@ -269,9 +270,9 @@ function donut(items,total,fFor){
   const R=54,C=2*Math.PI*R;let off=0;
   let s='<div class="dwrap"><svg viewBox="0 0 140 140" width="150" height="150" role="img" aria-label="Distribución de egresos"><circle cx="70" cy="70" r="'+R+'" fill="none" stroke="var(--field)" stroke-width="16"/>';
   items.forEach((it,i)=>{const len=Math.max(total?it.v/total*C-3:0,0);
-    s+='<circle class="seg seg-c" style="--i:'+i+'" cx="70" cy="70" r="'+R+'" fill="none" stroke="'+COLORS[i%6]+'" stroke-width="16" stroke-linecap="round" stroke-dasharray="'+len+' '+(C-len)+'" stroke-dashoffset="'+(-off)+'" transform="rotate(-90 70 70)" tabindex="0" role="button" aria-label="'+esc(it.k)+'"'+drillA('movimientos',fFor(it))+tipA(it.k+'\n'+cop(it.v)+' · '+Math.round(it.v/total*100)+'%','Toca otra vez para ver los movimientos')+'/>';
+    s+='<circle class="seg seg-c" style="--i:'+i+'" cx="70" cy="70" r="'+R+'" fill="none" stroke="'+COLORS[i%6]+'" stroke-width="16" stroke-linecap="round" stroke-dasharray="'+len+' '+(C-len)+'" stroke-dashoffset="'+(-off)+'" transform="rotate(-90 70 70)" tabindex="0" role="button" aria-label="'+esc(it.k)+'"'+drillA('movimientos',fFor(it))+tipA(it.k+'\n'+copRaw(it.v)+' · '+Math.round(it.v/total*100)+'%','Toca otra vez para ver los movimientos')+'/>';
     off+=total?it.v/total*C:0});
-  return s+'</svg><div class="dtxt"><div><b class="num">'+kfmt(total)+'</b><small>total</small></div></div></div>';
+  return s+'</svg><div class="dtxt"><div><b class="num mv">'+kfmt(total)+'</b><small>total</small></div></div></div>';
 }
 
 function txRow(x,mode){
@@ -408,8 +409,8 @@ V.reportes=function(){
    +'<article class="card sg s8 rev" style="--d:5"><div class="flex sb wrap"><div><h2 class="ct">Ingresos vs egresos</h2><p class="sub">Pasa el cursor o toca un mes para ver el detalle</p></div><div class="legend"><span><i style="background:var(--c1)"></i>Ingresos</span><span><i style="background:var(--c5)"></i>Egresos</span></div></div><div style="margin-top:10px">'+lineChart(ms)+'</div></article>'
    +'<article class="card sg s4 rev" style="--d:6"><h2 class="ct">Egresos por categoría</h2><div class="donutwrap">'
      +(cats.length?donut(cats,catTotal,catF)+'<div class="lg">'+cats.map((c,i)=>'<button'+drillA('movimientos',catF(c))+'><i style="background:'+COLORS[i%6]+'"></i><span>'+esc(c.k)+'</span><b class="num">'+Math.round(c.v/catTotal*100)+'%</b></button>').join('')+'</div>':'<div class="empty"><b>Sin egresos</b>No hay egresos en este periodo.</div>')+'</div></article>'
-   +'<article class="card sg s6 rev" style="--d:7"><h2 class="ct">Ingresos por plan</h2><p class="sub">Toca una barra para ver el detalle</p><div style="margin-top:8px">'+(byPlan.length?byPlan.map((p,i)=>'<button class="hbar" style="--i:'+i+'"'+planOf(p.k).replace(' role="button" tabindex="0"','')+'><span>'+esc(p.k)+'</span><div class="t"><i style="--w:'+Math.round(p.v/pmax*100)+'%;--c:'+COLORS[i%6]+'"></i></div><b class="num">'+kfmt(p.v)+'</b></button>').join(''):'<div class="empty"><b>Sin ingresos</b>Registra ingresos para ver este reporte.</div>')+'</div></article>'
-   +'<article class="card sg s6 rev" style="--d:8"><h2 class="ct">Clientes que más aportan</h2><p class="sub">Toca un cliente para abrir su ficha</p><div style="margin-top:8px">'+(topc.length?topc.map((p,i)=>'<button class="hbar" style="--i:'+i+'" data-act="openClient" data-id="'+esc(p.id)+'"><span>'+esc(p.k)+'</span><div class="t"><i style="--w:'+Math.round(p.v/tmax*100)+'%;--c:'+COLORS[(i+1)%6]+'"></i></div><b class="num">'+kfmt(p.v)+'</b></button>').join(''):'<div class="empty"><b>Sin datos</b>Asocia tus ingresos a un cliente para ver su aporte.</div>')+'</div></article>'
+   +'<article class="card sg s6 rev" style="--d:7"><h2 class="ct">Ingresos por plan</h2><p class="sub">Toca una barra para ver el detalle</p><div style="margin-top:8px">'+(byPlan.length?byPlan.map((p,i)=>'<button class="hbar" style="--i:'+i+'"'+planOf(p.k).replace(' role="button" tabindex="0"','')+'><span>'+esc(p.k)+'</span><div class="t"><i style="--w:'+Math.round(p.v/pmax*100)+'%;--c:'+COLORS[i%6]+'"></i></div><b class="num mv">'+kfmt(p.v)+'</b></button>').join(''):'<div class="empty"><b>Sin ingresos</b>Registra ingresos para ver este reporte.</div>')+'</div></article>'
+   +'<article class="card sg s6 rev" style="--d:8"><h2 class="ct">Clientes que más aportan</h2><p class="sub">Toca un cliente para abrir su ficha</p><div style="margin-top:8px">'+(topc.length?topc.map((p,i)=>'<button class="hbar" style="--i:'+i+'" data-act="openClient" data-id="'+esc(p.id)+'"><span>'+esc(p.k)+'</span><div class="t"><i style="--w:'+Math.round(p.v/tmax*100)+'%;--c:'+COLORS[(i+1)%6]+'"></i></div><b class="num mv">'+kfmt(p.v)+'</b></button>').join(''):'<div class="empty"><b>Sin datos</b>Asocia tus ingresos a un cliente para ver su aporte.</div>')+'</div></article>'
    +'<article class="card sg s12 rev" style="--d:9"><h2 class="ct" style="margin-bottom:4px">Estado de resultados mensual</h2><p class="sub" style="margin-bottom:6px">Toca un mes para ver sus movimientos</p><div class="rscroll"><table class="rtable"><thead><tr><th>Mes</th><th>Ingresos</th><th>Egresos</th><th>Utilidad</th><th>Margen</th></tr></thead><tbody>'
      +ms.slice().reverse().map(m=>{const u=m.inc-m.exp;return '<tr'+drillA('movimientos',{txMonth:m.key,txType:'todos'})+'><td>'+mlong(m.key)+'</td><td class="num">'+cop(m.inc)+'</td><td class="num">'+cop(m.exp)+'</td><td class="num" style="font-weight:700;color:'+(u>=0?'var(--good)':'var(--bad)')+'">'+cop(u)+'</td><td class="num mut">'+(m.inc?Math.round(u/m.inc*100)+'%':'—')+'</td></tr>'}).join('')
    +'</tbody></table></div></article></div>';
@@ -442,7 +443,7 @@ V.agenda=function(){
    +'<div class="s4 stack">'
      +'<article class="card sg rev" style="--d:3"><div class="lbl up" style="margin-bottom:6px">Seguimiento pendiente</div>'+(over.length?'<div class="ul">'+over.map(x=>'<div class="li"><button class="chk" data-act="toggleTask" data-id="'+x.id+'" aria-label="Marcar como hecha">'+ico('tick')+'</button><div class="grow"><b>'+esc(x.text)+'</b><small>'+fdate(x.date)+(cname(x.clientId)?' · '+esc(cname(x.clientId)):'')+'</small></div><button class="iconbtn sm" data-act="moveTask" data-id="'+x.id+'" aria-label="Pasar a hoy" data-tip="Pasar a hoy">'+ico('calendar')+'</button></div>').join('')+'</div>':'<div class="empty" style="padding:18px 0"><b>Sin pendientes atrasados</b>Buen trabajo.</div>')+'</article>'
      +'<article class="card sg rev" style="--d:4"><div class="lbl up" style="margin-bottom:6px">Cobros de este día</div>'+(cobros.length?'<div class="ul">'+cobros.map(c=>'<div class="li" data-act="openClient" data-id="'+c.id+'" tabindex="0"><div class="av" style="--c:'+hashColor(c.name)+'">'+initials(c.name)+'</div><div class="grow"><b>'+esc(c.name)+'</b><small>'+cop(c.fee)+' · '+esc(c.plan)+'</small></div><button class="btn sm pri" data-act="payClient" data-id="'+c.id+'">Cobrar</button></div>').join('')+'</div>':'<div class="empty" style="padding:18px 0"><b>Sin cobros programados</b>Ningún cliente vence este día.</div>')+'</article>'
-     +'<article class="card sg rev" style="--d:5"><div class="lbl up" style="margin-bottom:6px">Movimientos del día</div>'+(txs.length?'<div class="ul">'+txs.map(x=>'<div class="li" data-act="editTx" data-id="'+x.id+'" tabindex="0"><div class="tico '+(x.type==='ingreso'?'in':'out')+'">'+ico(x.type==='ingreso'?'in':'out')+'</div><div class="grow"><b>'+esc(x.concept||x.category)+'</b><small>'+esc(cname(x.clientId)||x.category)+'</small></div><span class="amt '+(x.type==='ingreso'?'in':'')+'">'+(x.type==='ingreso'?'+':'-')+kfmt(x.amount)+'</span></div>').join('')+'</div>':'<div class="empty" style="padding:18px 0"><b>Sin movimientos</b>No hay ingresos ni egresos este día.</div>')+'</article></div></div>';
+     +'<article class="card sg rev" style="--d:5"><div class="lbl up" style="margin-bottom:6px">Movimientos del día</div>'+(txs.length?'<div class="ul">'+txs.map(x=>'<div class="li" data-act="editTx" data-id="'+x.id+'" tabindex="0"><div class="tico '+(x.type==='ingreso'?'in':'out')+'">'+ico(x.type==='ingreso'?'in':'out')+'</div><div class="grow"><b>'+esc(x.concept||x.category)+'</b><small>'+esc(cname(x.clientId)||x.category)+'</small></div><span class="amt mv '+(x.type==='ingreso'?'in':'')+'">'+(x.type==='ingreso'?'+':'-')+kfmt(x.amount)+'</span></div>').join('')+'</div>':'<div class="empty" style="padding:18px 0"><b>Sin movimientos</b>No hay ingresos ni egresos este día.</div>')+'</article></div></div>';
 };
 
 /* ===== render ===== */
@@ -467,8 +468,8 @@ function runCounts(){
   const els=Array.from(document.querySelectorAll('[data-count]'));if(!els.length)return;
   const t0=performance.now(),dur=850;
   const step=t=>{const p=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-p,4);
-    els.forEach(el=>{if(!el.isConnected)return;const to=+el.dataset.count,f=el.dataset.fmt,v=to*e;el.textContent=f==='n'?Math.round(v):cop(v)});
-    if(p<1)requestAnimationFrame(step);else els.forEach(el=>{if(el.isConnected){const to=+el.dataset.count;el.textContent=el.dataset.fmt==='n'?to:cop(to)}})};
+    els.forEach(el=>{if(!el.isConnected)return;const to=+el.dataset.count,f=el.dataset.fmt,v=to*e;el.textContent=f==='n'?Math.round(v):copRaw(v)});
+    if(p<1)requestAnimationFrame(step);else els.forEach(el=>{if(el.isConnected){const to=+el.dataset.count;el.textContent=el.dataset.fmt==='n'?to:copRaw(to)}})};
   requestAnimationFrame(step);
 }
 function refreshClients(){const a=$('#clist'),b=$('#cfbar');if(!a){return render(false)}a.innerHTML=clientList();b.innerHTML=clientFbar()}
@@ -647,7 +648,7 @@ const ACT={
   clearF:el=>{ui[el.dataset.k]=el.dataset.k==='clientQ'||el.dataset.k==='txQ'?'':'todos';const q=$('#clientQ')||$('#txQ');if(q&&(el.dataset.k==='clientQ'||el.dataset.k==='txQ'))q.value='';render(false)},
   clearAll:()=>{resetFilters();render(false)},
   theme:()=>toggleTheme(),
-  hide:()=>{HIDE=!HIDE;try{localStorage.setItem('euko-hide',HIDE?'1':'0')}catch(e){}applyHide();render(false);toast(HIDE?'Valores ocultos. Los porcentajes siguen visibles':'Valores visibles')},
+  hide:()=>{HIDE=!HIDE;try{localStorage.setItem('euko-hide',HIDE?'1':'0')}catch(e){}applyHide();navUI();toast(HIDE?'Valores ocultos. Los porcentajes siguen visibles':'Valores visibles')},
   close:()=>{if(!closeOverlay(false))return},
   reload:()=>location.reload(),
   print:()=>window.print(),
@@ -782,7 +783,7 @@ document.addEventListener('pointerdown',e=>{
 /* brillo del cursor y tooltips */
 const tip=$('#tip');
 function hideTip(){tip.classList.remove('on')}
-function fillTip(el,hint){tip.innerHTML=esc(el.dataset.tip).replace(/\n/g,'<br>')+(hint&&el.dataset.hint?'<small>'+esc(el.dataset.hint)+'</small>':'')}
+function fillTip(el,hint){let t=esc(el.dataset.tip).replace(/\n/g,'<br>');if(HIDE)t=t.replace(/\$ ?[\d.]+/g,'<span class="mv">$&</span>');tip.innerHTML=t+(hint&&el.dataset.hint?'<small>'+esc(el.dataset.hint)+'</small>':'')}
 function showTipEl(el,hint){
   fillTip(el,hint);tip.classList.add('on');
   const r=el.getBoundingClientRect(),w=tip.offsetWidth,h=tip.offsetHeight;
