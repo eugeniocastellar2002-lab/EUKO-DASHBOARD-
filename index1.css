@@ -130,10 +130,6 @@ body::before{content:"";position:fixed;left:0;right:0;top:0;height:var(--safe-t)
 .b2{--bc:var(--blob2);width:56vmax;height:56vmax;right:-22vmax;top:4vmax;animation:d2 38s ease-in-out infinite alternate}
 .b3{--bc:var(--blob3);width:60vmax;height:60vmax;left:12vmax;bottom:-34vmax;animation:d3 44s ease-in-out infinite alternate}
 .b4{--bc:var(--blob4);width:30vmax;height:30vmax;right:2vmax;bottom:-12vmax;opacity:calc(var(--blob-o)*.6);animation:d1 36s ease-in-out infinite alternate-reverse}
-.orb{position:absolute;border-radius:50%;opacity:.55;transform:translate3d(0,0,0);
-  background:radial-gradient(circle,transparent 52%,var(--orb) 54%,transparent 66%)}
-.o1{width:34vmax;height:34vmax;left:46%;top:8%;animation:d2 50s ease-in-out infinite alternate}
-.o2{width:26vmax;height:26vmax;left:6%;top:52%;animation:d3 58s ease-in-out infinite alternate-reverse}
 .grain{position:absolute;inset:0;opacity:.045;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .8 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
 @keyframes d1{to{transform:translate3d(9vmax,7vmax,0) scale(1.1)}}
 @keyframes d2{to{transform:translate3d(-8vmax,10vmax,0) scale(.94)}}
@@ -265,7 +261,8 @@ h2.ct{font-family:var(--f-d);font-weight:600;font-size:16px;letter-spacing:-.01e
 .kpi.hero .lbl,.kpi.hero .sub{color:rgba(4,42,32,.8)}
 .kpi.hero .ico{background:rgba(255,255,255,.38);color:var(--ink)}
 .kpi.hero .delta{color:var(--ink);background:rgba(255,255,255,.42)}
-.kpi .mid{margin:4px 0 2px}
+.kpi{container-type:inline-size}
+.kpi .mid{margin:4px 0 2px;font-size:clamp(15px,14cqw,24px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal}
 .kpi .delta{align-self:flex-start}
 .tap{cursor:pointer;-webkit-user-select:none;user-select:none}
 .tap:active{transform:scale(.97)}
@@ -458,7 +455,11 @@ svg.chart .gridl{stroke:var(--line);stroke-width:1}
 .fl textarea{height:84px;padding:10px 14px;resize:vertical}
 .fl input:focus,.fl select:focus,.fl textarea:focus{border-color:var(--mint);box-shadow:0 0 0 3px var(--mint-soft)}
 .fl input[type=date]{min-width:0}
-.hide-money input[name=fee],.hide-money input[name=amount],.hide-money input[name=goal]{-webkit-text-security:disc}
+.mv{transition:filter .35s var(--ease)}
+.hide-money .mv{filter:blur(8px);-webkit-user-select:none;user-select:none}
+.hide-money svg .mv{opacity:0}
+.hide-money input[name=fee],.hide-money input[name=amount],.hide-money input[name=goal]{filter:blur(6px);transition:filter .25s}
+.hide-money input[name=fee]:focus,.hide-money input[name=amount]:focus,.hide-money input[name=goal]:focus{filter:none}
 .seg2{display:grid;grid-template-columns:1fr 1fr;padding:4px;border-radius:999px;background:var(--field);border:1px solid var(--line)}
 .seg2 button{height:38px;border-radius:999px;font-weight:700;color:var(--fg2);transition:background-color .25s,color .25s,transform .2s var(--spring)}
 .seg2 button:active{transform:scale(.95)}
@@ -520,8 +521,7 @@ svg.chart .gridl{stroke:var(--line);stroke-width:1}
   .stage.glass{-webkit-backdrop-filter:none;backdrop-filter:none;
     background:linear-gradient(160deg,rgba(255,255,255,.10),rgba(255,255,255,.04))}
   :root[data-theme="light"] .stage.glass{background:linear-gradient(160deg,rgba(255,255,255,.62),rgba(255,255,255,.36))}
-  .grain,.o2{display:none}
-}
+  .grain,}
 @media (max-width:900px) and (prefers-color-scheme:light){:root:not([data-theme="dark"]) .stage.glass{background:linear-gradient(160deg,rgba(255,255,255,.62),rgba(255,255,255,.36))}}
 @media (max-width:900px){
   .shell{grid-template-columns:minmax(0,1fr)}
