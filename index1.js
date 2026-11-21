@@ -165,6 +165,8 @@ const S={clients:[],transactions:[],tasks:[],files:[],settings:{goal:8000000,hid
 const FKINDS=['Comprobante de pago','Pendiente por cobrar','Crédito','Otro'];
 const METHODS=['Efectivo','Transferencia','Tarjeta','Crédito'];
 const meta={saveErr:false,savedAt:0,noStorage:false,recovered:false};
+let cloudSt='',cloudMsg='',applyingRemote=false;
+function cloudSession(){try{const s=JSON.parse(sessionStorage.getItem('euko-auth')||'null');return s&&s.cloud?s:null}catch(e){return null}}
 let bakAt=0;
 const STATUS_C=['Activo','Pendiente','Inactivo'];
 
@@ -207,15 +209,17 @@ function save(force){
     if(prev&&(force||now-bakAt>300000)){try{localStorage.setItem(LSB,prev);bakAt=now}catch(e){}}
     localStorage.setItem(LS,json);
     meta.saveErr=false;meta.savedAt=now;
+    if(!applyingRemote&&window.EUKOCloud&&cloudSession())EUKOCloud.changed();
   }catch(e){meta.saveErr=true;console.error(e)}
   saveUI(true);
   if(meta.saveErr)toast('No se pudo guardar en este navegador. Descarga un respaldo desde Ajustes.');
   return !meta.saveErr;
 }
+const CLOUDTXT={connecting:'Conectando nube…',pending:'Sincronizando…',synced:'Nube sincronizada',error:'Nube sin conexión'};
 function saveUI(pulse){
   const c=$('#savechip');
-  if(c){const d=new Date(meta.savedAt||Date.now());c.textContent=meta.saveErr?'Sin guardar':(meta.savedAt?'Guardado '+pad(d.getHours())+':'+pad(d.getMinutes()):'Datos locales');
-    c.classList.toggle('err',meta.saveErr);if(pulse&&!meta.saveErr){c.classList.remove('pulse');void c.offsetWidth;c.classList.add('pulse')}}
+  if(c){const d=new Date(meta.savedAt||Date.now());c.textContent=meta.saveErr?'Sin guardar':cloudSession()&&CLOUDTXT[cloudSt]?CLOUDTXT[cloudSt]:(meta.savedAt?'Guardado '+pad(d.getHours())+':'+pad(d.getMinutes()):'Datos locales');
+    c.classList.toggle('err',meta.saveErr||(cloudSession()&&cloudSt==='error'));if(pulse&&!meta.saveErr){c.classList.remove('pulse');void c.offsetWidth;c.classList.add('pulse')}}
   const g=$('#gearbtn');if(g)g.classList.toggle('err',meta.saveErr||meta.noStorage);
 }
 const undoStack=[];
@@ -225,6 +229,40 @@ function commit(msg,canUndo){save();render(false);if(msg)haptic('success');if(ms
 function upsert(coll,o){const a=S[coll],i=a.findIndex(x=>x.id===o.id);if(i>=0)a[i]=o;else a.push(o)}
 function removeItem(coll,id){S[coll]=S[coll].filter(x=>x.id!==id)}
 
+
+/* ===== nube: sincronización entre dispositivos (solo sesión con Google) ===== */
+function cloudBoxInner(){
+  const cs=cloudSession();
+  if(!cs)return '<h3>Sincronización en la nube</h3><p>Estás en sesión <b>local</b>: tus datos viven solo en este dispositivo. Para tener los mismos datos en todos tus dispositivos, cierra sesión y entra con <b>Google</b>.</p>';
+  const txt={connecting:'Conectando…',pending:'Subiendo cambios…',synced:'Todo sincronizado',error:cloudMsg||'Sin conexión',off:cloudMsg==='cancel'?'Sincronización en pausa (elegiste no sincronizar)':'No se pudo iniciar la sincronización. Cierra sesión y vuelve a entrar con Google.'}[cloudSt]||'…';
+  return '<h3>Sincronización en la nube</h3><p>Cuenta: <b>'+esc(cs.email||'')+'</b><br>Estado: <b>'+esc(txt)+'</b></p><p style="font-size:12.5px;color:var(--fg3)">Se sincronizan clientes, movimientos, tareas, metas y presupuestos. Los comprobantes (archivos) se quedan en cada dispositivo: respáldalos con el .json.</p><div class="setrow"><button class="btn ghost" data-act="cloudNow">Sincronizar ahora</button></div>';
+}
+let pendingChoice=null;
+const cloudApi={
+  getState:()=>({clients:S.clients,transactions:S.transactions,tasks:S.tasks,settings:S.settings}),
+  hasData:()=>S.clients.length+S.transactions.length+S.tasks.length>0,
+  apply:o=>{
+    const n=sanitize(o);applyingRemote=true;
+    try{S.clients=n.clients;S.transactions=n.transactions;S.tasks=n.tasks;S.settings=n.settings;
+      const owners=new Set(S.clients.map(c=>'client:'+c.id).concat(S.transactions.map(x=>'tx:'+x.id)));S.files=S.files.filter(f=>owners.has(f.owner));
+      undoStack.length=0;save(true)}
+    finally{applyingRemote=false}
+    render(false);
+  },
+  status:(s,m)=>{cloudSt=s;cloudMsg=m||'';saveUI(false);const b=$('#cloudbox');if(b)b.innerHTML=cloudBoxInner();if(s==='error'&&m)toast(m)},
+  notify:m=>toast(m),
+  choose:kind=>new Promise(res=>{
+    const open=()=>{
+      if(ov.classList.contains('open')){setTimeout(open,600);return}
+      pendingChoice=res;ovCloseCb=()=>{if(pendingChoice){const f=pendingChoice;pendingChoice=null;f('cancel')}};
+      openOverlay('<div class="mh"><h2>Sincronizar tus datos</h2></div><p style="color:var(--fg2);margin-bottom:14px">'+(kind==='first'?'Ya hay datos guardados en la nube y también en este dispositivo. ¿Cuáles quieres usar?':'Los datos de la nube cambiaron mientras tenías cambios sin subir en este dispositivo. ¿Cuáles quieres conservar?')+'</p>'
+        +'<div class="stack"><button class="btn pri" data-act="syncChoice" data-v="cloud">Usar los de la nube</button><small style="color:var(--fg3);margin:-4px 0 6px">Reemplaza los de este dispositivo (se guarda una copia automática).</small>'
+        +'<button class="btn ghost" data-act="syncChoice" data-v="local">Usar los de este dispositivo</button><small style="color:var(--fg3);margin:-4px 0 6px">Reemplaza los de la nube.</small>'
+        +'<button class="btn ghost" data-act="syncChoice" data-v="cancel">Ahora no</button></div>',true);
+    };
+    setTimeout(open,400);
+  })
+};
 
 /* ===== soportes (comprobantes): los archivos viven en IndexedDB, los datos en localStorage ===== */
 let idbP=null;
@@ -701,7 +739,7 @@ function navigate(v){
 
 /* ===== ventanas y formularios ===== */
 const ov=$('#overlay');
-let ovOpener=null,ovDirty=false,ovArmed=false,curPanel='',calM='';
+let ovOpener=null,ovDirty=false,ovArmed=false,curPanel='',calM='',ovCloseCb=null;
 function openOverlay(html,drawer,panel){
   if(!ov.classList.contains('open'))ovOpener=document.activeElement;
   ovDirty=false;ovArmed=false;curPanel=panel||'';
@@ -715,7 +753,7 @@ function openOverlay(html,drawer,panel){
 function closeOverlay(force){
   if(!ov.classList.contains('open'))return true;
   if(!force&&ovDirty&&!ovArmed){ovArmed=true;toast('Tienes cambios sin guardar. Cierra otra vez para descartarlos.');return false}
-  curPanel='';ov.className='';ov.innerHTML='';if(!$('#viewer').classList.contains('open'))document.body.classList.remove('lock');ovDirty=false;ovArmed=false;pendingImport=null;pendingData={};urlCache.forEach(u=>URL.revokeObjectURL(u));urlCache.clear();draft=[];fOwner='';
+  curPanel='';ov.className='';ov.innerHTML='';{const cb=ovCloseCb;ovCloseCb=null;if(cb)setTimeout(cb,0)}if(!$('#viewer').classList.contains('open'))document.body.classList.remove('lock');ovDirty=false;ovArmed=false;pendingImport=null;pendingData={};urlCache.forEach(u=>URL.revokeObjectURL(u));urlCache.clear();draft=[];fOwner='';
   if(ovOpener&&ovOpener.isConnected&&ovOpener.focus){try{ovOpener.focus({preventScroll:true})}catch(e){}}ovOpener=null;navUI();
   return true;
 }
@@ -963,6 +1001,7 @@ function settingsForm(){
   return '<div class="mh"><h2>Ajustes y respaldo</h2>'+xbtn+'</div>'
   +(meta.noStorage||meta.saveErr?'<div class="banner"><span><b>Atención.</b> Este navegador no está guardando los datos (¿modo privado o sin espacio?). Descarga un respaldo para no perderlos.</span></div>':'')
   +'<div class="setsec"><h3>Meta de ingresos</h3><p>Meta mensual actual: <b class="num">'+cop(S.settings.goal||0)+'</b></p><div class="setrow"><button class="btn ghost" data-act="editGoal">'+ico('target')+'Cambiar meta</button></div></div>'
+  +'<div class="setsec" id="cloudbox">'+cloudBoxInner()+'</div>'
   +'<div class="setsec"><h3>Respuesta háptica</h3><p>Vibración leve al tocar botones, menús, casillas y al mover las gráficas (celulares compatibles).</p><div class="setrow"><button class="btn ghost" data-act="haptic">'+(HAP?'Activada · toca para desactivar':'Desactivada · toca para activar')+'</button></div></div>'
   +'<div class="setsec"><h3>Respaldo de tus datos</h3><p>Tus datos se guardan en este navegador ('+n+(size?' · '+size:'')+'). Descarga un respaldo con frecuencia (incluye los comprobantes) y úsalo para llevarlos a otro dispositivo.</p>'
   +'<div class="setrow"><button class="btn pri" data-act="exportJson">'+ico('download')+'Descargar respaldo (.json)</button><label class="btn ghost" style="cursor:pointer">'+ico('upload')+'Restaurar desde archivo<input type="file" id="impfile" accept=".json,application/json" class="vh"></label></div>'
@@ -1027,6 +1066,8 @@ const ACT={
   quick:()=>{const q=$('#quick'),b=$('#plusbtn');const o=!q.classList.contains('open');q.classList.toggle('open',o);b.classList.toggle('open',o);b.setAttribute('aria-expanded',o)},
   settings:()=>{closeQuick();openOverlay(settingsForm(),true)},
   panel:el=>{closeQuick();openPanel(el.dataset.p)},
+  syncChoice:el=>{const f=pendingChoice;pendingChoice=null;ovCloseCb=null;closeOverlay(true);if(f)f(el.dataset.v)},
+  cloudNow:()=>{if(window.EUKOCloud)EUKOCloud.syncNow();toast('Sincronizando…')},
   photoClear:el=>{const p=el.closest('.phpick');if(!p)return;p.querySelector('[name=photo]').value='';const pv=p.querySelector('.phprev');pv.textContent=pv.dataset.ini||'?';ovDirty=true},
   haptic:el=>{HAP=!HAP;try{localStorage.setItem('euko-haptic',HAP?'1':'0')}catch(e){}el.textContent=HAP?'Activada · toca para desactivar':'Desactivada · toca para activar';if(HAP){lastHap=0;haptic('success')}},
   calNav:el=>{const n=+el.dataset.n;calM=n?addMonths(calM||today().slice(0,7)+'-01',n):today().slice(0,7)+'-01';refreshPanel()},
@@ -1308,6 +1349,7 @@ document.addEventListener('click',e=>{
   const stop=()=>{c=null};document.addEventListener('pointerup',stop,{passive:true});document.addEventListener('pointercancel',stop,{passive:true});
 }
 gcFiles();
+if(cloudSession()){if(window.EUKOCloud)EUKOCloud.start(cloudApi);else cloudApi.status('off','nocloud')}
 if(meta.recovered)setTimeout(()=>toast('Se recuperó la copia automática de tus datos'),600);
 if(meta.noStorage)setTimeout(()=>toast('Este navegador no permite guardar datos. Descarga respaldos desde Ajustes.'),900);
 })();
