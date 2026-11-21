@@ -95,7 +95,7 @@ function logoHtml(val,size){
   size=size||40;val=String(val||'').trim();if(!val)return '';
   const e=entById(val)||entFind(val);
   if(e){const L=e.t.length,cl=L>=4?' l4':L===3?' l3':L===2?' l2':'';
-    return '<span class="logo-b'+cl+'" style="--s:'+size+'px;--lb:'+e.bg+';--lf:'+e.fg+'" title="'+esc(e.n)+'" role="img" aria-label="'+esc(e.n)+'">'+esc(e.t)+(LOGO_AUTO||LOGO_FILES.indexOf(e.id)>=0?'<img src="logos/'+e.id+'.png" alt="" loading="lazy" onerror="this.remove()">':'')+'</span>'}
+    return '<span class="logo-b'+cl+'" style="--s:'+size+'px;--lb:'+e.bg+';--lf:'+e.fg+'" title="'+esc(e.n)+'" role="img" aria-label="'+esc(e.n)+'">'+esc(e.t)+(LOGO_AUTO||LOGO_FILES.indexOf(e.id)>=0?'<img src="Logos/'+e.id+'.png" alt="" loading="lazy" onerror="if(this.dataset.r){this.remove()}else{this.dataset.r=1;this.src=\'logos/'+e.id+'.png\'}">':'')+'</span>'}
   let h=0;for(const c of val)h=(h*31+c.charCodeAt(0))>>>0;
   return '<span class="logo-b l2" style="--s:'+size+'px;--lb:hsl('+(h%360)+' 38% 34%);--lf:#fff" title="'+esc(val)+'" role="img" aria-label="'+esc(val)+'">'+esc(initials(val)||'?')+'</span>';
 }
@@ -457,7 +457,7 @@ let iosEl=null,lastHap=0;
 function iosTick(){try{if(!iosEl){const l=document.createElement('label');l.setAttribute('aria-hidden','true');l.style.cssText='position:fixed;left:-99px;top:-99px;opacity:0;pointer-events:none';const i=document.createElement('input');i.type='checkbox';i.setAttribute('switch','');l.appendChild(i);document.body.appendChild(l);iosEl=l}iosEl.click()}catch(e){}}
 const HP={tick:4,tap:7,nav:11,soft:6,success:[8,50,12],warn:[14,60,14]};
 function haptic(k){
-  if(!HAP||reduced())return;const now=performance.now();if(now-lastHap<45)return;lastHap=now;
+  if(!HAP||reduced())return;const now=performance.now();if(now-lastHap<(k==='tick'?25:45))return;lastHap=now;
   try{if(navigator.vibrate)navigator.vibrate(HP[k||'tap']);else if(IOS)iosTick()}catch(e){}
 }
 
@@ -658,9 +658,14 @@ function refreshFilters(){ui.lim={c:30,t:30};const g=$('#gsearch');if(g&&documen
 /* navegación (menú lateral y barra inferior se crean una sola vez) */
 function buildNav(){
   $('#dock').innerHTML='<span class="lens" aria-hidden="true"></span>'+VIEWS.map(v=>'<button class="dk" data-act="nav" data-v="'+v.id+'" aria-label="'+v.label+'">'+ico(v.icon)+'<span class="lb">'+v.short+'</span></button>').join('')
-    +'<div class="plusw"><button class="plus" id="plusbtn" data-act="quick" aria-label="Agregar" aria-expanded="false" aria-haspopup="menu">'+ico('plus')+'</button><div class="quick" id="quick" role="menu">'
-    +'<button data-act="addClient" role="menuitem">'+ico('users')+'Nuevo cliente</button><button data-act="addTx" data-type="ingreso" role="menuitem">'+ico('in')+'Registrar ingreso</button><button data-act="addTx" data-type="egreso" role="menuitem">'+ico('out')+'Registrar egreso</button><button data-act="quickTask" role="menuitem">'+ico('check')+'Tarea de hoy</button>'
-    +'<div class="qtools"><div class="qsep">Herramientas</div>'+Object.keys(PANELS).map(k=>'<button data-act="panel" data-p="'+k+'" role="menuitem">'+ico(PANELS[k].icon)+PANELS[k].label+'</button>').join('')+'</div></div></div>';
+    +'<div class="plusw"><button class="plus" id="plusbtn" data-act="quick" aria-label="Agregar" aria-expanded="false" aria-haspopup="menu">'+ico('plus')+'</button></div>';
+  let dw=$('#dock').parentNode;
+  if(!dw.classList.contains('dockin')){const d=document.createElement('div');d.className='dockin';dw.insertBefore(d,$('#dock'));d.appendChild($('#dock'));dw=d}
+  const oldq=$('#quick');if(oldq)oldq.remove();
+  const qd=document.createElement('div');qd.className='quick';qd.id='quick';qd.setAttribute('role','menu');
+  qd.innerHTML='<button data-act="addClient" role="menuitem">'+ico('users')+'Nuevo cliente</button><button data-act="addTx" data-type="ingreso" role="menuitem">'+ico('in')+'Registrar ingreso</button><button data-act="addTx" data-type="egreso" role="menuitem">'+ico('out')+'Registrar egreso</button><button data-act="quickTask" role="menuitem">'+ico('check')+'Tarea de hoy</button>'
+    +'<div class="qtools"><div class="qsep">Herramientas</div>'+Object.keys(PANELS).map(k=>'<button data-act="panel" data-p="'+k+'" role="menuitem">'+ico(PANELS[k].icon)+PANELS[k].label+'</button>').join('')+'</div>';
+  dw.appendChild(qd);
   $('#rail').innerHTML='<span class="lens" aria-hidden="true"></span><span class="logo-m" style="--h:26px;margin:6px 0 8px" role="img" aria-label="EUKO"><i class="ld"></i><i class="ll"></i></span>'+Object.keys(PANELS).map(k=>'<button class="rbtn" data-act="panel" data-p="'+k+'" aria-label="'+PANELS[k].label+'" aria-haspopup="dialog" aria-expanded="false">'+ico(PANELS[k].icon)+'<span class="tt">'+PANELS[k].label+'</span></button>').join('')
     +'<div class="sep"></div><button class="rbtn" id="railhide" data-act="hide"></button><button class="rbtn" data-act="settings" aria-label="Ajustes y respaldo">'+ico('gear')+'<span class="tt">Ajustes y respaldo</span></button>';
 }
@@ -849,7 +854,7 @@ async function addFiles(list){
     const base=String(f.name||'soporte').replace(/\.[^.]+$/,'').slice(0,60)||'soporte';
     const meta={id:uid(),name:base+'.'+p.ext,mime:p.mime,size:p.blob.size,kind,date:today()};
     if(key){
-      try{await fput(meta.id,p.blob)}catch(e){toast('Este navegador no permite guardar archivos');return}
+      try{await fput(meta.id,p.blob);haptic('success')}catch(e){toast('Este navegador no permite guardar archivos');return}
       if(!n)snap();S.files.push(Object.assign(meta,{owner:key}));
     }else draft.push(Object.assign(meta,{blob:p.blob}));
     n++;total++;
@@ -1266,18 +1271,42 @@ document.fonts&&document.fonts.ready&&document.fonts.ready.then(()=>navUI());
 let lastDay=today();
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&today()!==lastDay){const was=ui.day===lastDay;lastDay=today();if(was)ui.day=lastDay;setDateChip();render(false)}});
 
-/* eventos de háptica */
-const HSEL='button,[data-act],a.btn,.dk,.rbtn,.plus,.cd,.fchip,.fthumb,.fadd,.seg2 button,.seg4 button,.ent-tile,.pf-btn,.pf-item,select,input[type=checkbox],input[type=radio],input[type=file]+*,label.btn';
-document.addEventListener('pointerdown',e=>{
-  if(e.pointerType==='mouse')return;const t=e.target.closest&&e.target.closest(HSEL);if(!t||t.disabled||t.closest('.grab'))return;
-  haptic(t.matches('.dk,.rbtn,.plus,.pf-btn')?'nav':'tap');
-},{passive:true});
-document.addEventListener('focusin',e=>{const t=e.target;if(t&&t.matches&&t.matches('input:not([type=file]):not([type=checkbox]):not([type=radio]):not([type=hidden]),textarea')&&lastPT!=='mouse')haptic('soft')});
-let hapG=null;
-const hapMove=(x,y,target)=>{const el=target||document.elementFromPoint(x,y);const g=el&&el.closest?el.closest('.bar-g,.seg-c,.hbar,.cd'):null;if(g!==hapG){hapG=g;if(g)haptic('tick')}};
-document.addEventListener('pointermove',e=>{if(e.pointerType==='mouse'||e.pressure===0&&e.pointerType==='touch'&&false)return;hapMove(e.clientX,e.clientY,e.target)},{passive:true});
-document.addEventListener('touchmove',e=>{const t=e.touches[0];if(t)hapMove(t.clientX,t.clientY)},{passive:true});
-document.addEventListener('pointerup',()=>{hapG=null},{passive:true});
+/* eventos de háptica: solo al tocar controles, al deslizar por la barra inferior y por las gráficas (nunca al hacer scroll) */
+const HSEL='button,[data-act],a[href],label.btn,label.fadd,.dk,.rbtn,.plus,.cd,.fthumb,.bar-g,.seg-c,select,input[type=checkbox],input[type=radio],summary';
+document.addEventListener('click',e=>{
+  if(!e.isTrusted||e.detail===0||lastPT==='mouse')return;
+  const t=e.target.closest&&e.target.closest(HSEL);if(!t||t.disabled||t.getAttribute('aria-disabled')==='true'||t.closest('.grab'))return;
+  haptic(t.matches('.dk,.rbtn,.plus')?'nav':'tap');
+},true);
+/* deslizar el dedo por la barra inferior: tick al pasar de un botón a otro y se suelta sobre el que quieres */
+{
+  const dock=$('#dock');let s=null,sup=false;
+  dock.addEventListener('click',e=>{if(sup){sup=false;e.stopPropagation();e.preventDefault()}},true);
+  const under=(x,y)=>{const el=document.elementFromPoint(x,y);return el&&el.closest?el.closest('.dk,.plus'):null};
+  dock.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse')return;const b=under(e.clientX,e.clientY);s=b?{start:b,cur:b,moved:false,id:e.pointerId}:null},{passive:true});
+  dock.addEventListener('pointermove',e=>{
+    if(!s||e.pointerId!==s.id)return;const b=under(e.clientX,e.clientY);if(!b||b===s.cur)return;
+    s.cur=b;s.moved=true;haptic('tick');
+    if(b.classList.contains('dk')){dock.querySelectorAll('.dk').forEach(x=>x.classList.toggle('on',x===b));placeLens(dock,'.dk')}
+  },{passive:true});
+  const end=e=>{
+    if(!s||e.pointerId!==s.id)return;const r=s;s=null;
+    if(e.type==='pointerup'&&r.moved&&r.cur!==r.start){r.cur.click();sup=true;setTimeout(()=>{sup=false},500)}else if(r.moved){navUI()}
+  };
+  dock.addEventListener('pointerup',end);dock.addEventListener('pointercancel',e=>{if(s&&e.pointerId===s.id){s=null;navUI()}});
+}
+/* gráficas: tick al deslizar horizontalmente de una barra/segmento a otro (el scroll vertical no vibra) */
+{
+  let c=null;const GS='.bar-g,.seg-c,.hbar';
+  document.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'){c=null;return}const g=e.target.closest&&e.target.closest(GS);c=g?{g,x:e.clientX,y:e.clientY,on:false,id:e.pointerId}:null},{passive:true});
+  document.addEventListener('pointermove',e=>{
+    if(!c||e.pointerId!==c.id)return;
+    if(!c.on){const dx=Math.abs(e.clientX-c.x),dy=Math.abs(e.clientY-c.y);if(dx>8&&dx>dy*1.2)c.on=true;else return}
+    const el=document.elementFromPoint(e.clientX,e.clientY),g=el&&el.closest?el.closest(GS):null;
+    if(g&&g!==c.g){c.g=g;haptic('tick')}
+  },{passive:true});
+  const stop=()=>{c=null};document.addEventListener('pointerup',stop,{passive:true});document.addEventListener('pointercancel',stop,{passive:true});
+}
 gcFiles();
 if(meta.recovered)setTimeout(()=>toast('Se recuperó la copia automática de tus datos'),600);
 if(meta.noStorage)setTimeout(()=>toast('Este navegador no permite guardar datos. Descarga respaldos desde Ajustes.'),900);
