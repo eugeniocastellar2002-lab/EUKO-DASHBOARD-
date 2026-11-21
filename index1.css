@@ -863,12 +863,11 @@ body{font-weight:400;letter-spacing:-.005em}
 .ccode{font-weight:700;color:var(--fg2);letter-spacing:.02em}
 .pf-code{font-size:11.5px;opacity:.75}
 
-/* ---------- 22. anti-parpadeo en celular (barra inferior y menú +) ---------- */
-@media (max-width:900px),(hover:none){
-  .dock.glass{-webkit-backdrop-filter:none;backdrop-filter:none;background:linear-gradient(150deg,var(--modal-bg),var(--modal-bg))}
-  .dockwrap{transform:translateZ(0);-webkit-transform:translateZ(0)}
-  .dk,.plus,.quick{-webkit-backface-visibility:hidden;backface-visibility:hidden}
-  .quick{will-change:transform,opacity;-webkit-backdrop-filter:none;backdrop-filter:none}
-  .dk:active,.plus:active{transition-duration:.12s}
-  .glass::after,.sg::after{display:none}
-}
+/* ---------- 22. barra inferior: cristal igual que la barra superior, sin parpadeo ---------- */
+.dockin{position:relative;display:flex;max-width:100%}
+.dock{touch-action:none;transform:translateZ(0);will-change:transform}
+.dk,.plus{-webkit-backface-visibility:hidden;backface-visibility:hidden;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.quick{will-change:transform,opacity;-webkit-backface-visibility:hidden;backface-visibility:hidden;z-index:2}
+.dockin>.quick{position:absolute;right:0;bottom:calc(100% + 14px);pointer-events:auto}
+svg.chart{touch-action:pan-y}
+@media (max-width:900px),(hover:none){.dk:active,.plus:active{transition-duration:.12s}}
