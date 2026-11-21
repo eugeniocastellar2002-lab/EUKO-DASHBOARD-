@@ -40,7 +40,8 @@ const isDemoId=id=>String(id).indexOf('d-')===0;
 
 /* ===== entidades: bancos, billeteras, casas de apuestas, créditos y comercios ===== */
 /* Para usar el logo oficial de una entidad: pon el archivo en la carpeta logos/ (por ejemplo logos/nequi.png)
-   y agrega su id a esta lista: const LOGO_FILES=['nequi','bancolombia']; */
+   (sin más pasos: LOGO_AUTO está activo). */
+const LOGO_AUTO=true; /* true = si existe logos/<id>.png se usa solo, sin tocar nada más */
 const LOGO_FILES=[];
 const ENT=[
  {id:'bancolombia',n:'Bancolombia',cat:'banco',bg:'#FDDA24',fg:'#16181d',t:'B',al:['bancolombia','sucursal virtual']},
@@ -94,7 +95,7 @@ function logoHtml(val,size){
   size=size||40;val=String(val||'').trim();if(!val)return '';
   const e=entById(val)||entFind(val);
   if(e){const L=e.t.length,cl=L>=4?' l4':L===3?' l3':L===2?' l2':'';
-    return '<span class="logo-b'+cl+'" style="--s:'+size+'px;--lb:'+e.bg+';--lf:'+e.fg+'" title="'+esc(e.n)+'" role="img" aria-label="'+esc(e.n)+'">'+esc(e.t)+(LOGO_FILES.indexOf(e.id)>=0?'<img src="logos/'+e.id+'.png" alt="" loading="lazy" onerror="this.remove()">':'')+'</span>'}
+    return '<span class="logo-b'+cl+'" style="--s:'+size+'px;--lb:'+e.bg+';--lf:'+e.fg+'" title="'+esc(e.n)+'" role="img" aria-label="'+esc(e.n)+'">'+esc(e.t)+(LOGO_AUTO||LOGO_FILES.indexOf(e.id)>=0?'<img src="logos/'+e.id+'.png" alt="" loading="lazy" onerror="this.remove()">':'')+'</span>'}
   let h=0;for(const c of val)h=(h*31+c.charCodeAt(0))>>>0;
   return '<span class="logo-b l2" style="--s:'+size+'px;--lb:hsl('+(h%360)+' 38% 34%);--lf:#fff" title="'+esc(val)+'" role="img" aria-label="'+esc(val)+'">'+esc(initials(val)||'?')+'</span>';
 }
