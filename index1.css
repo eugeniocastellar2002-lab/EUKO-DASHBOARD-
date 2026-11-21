@@ -650,7 +650,7 @@ body{font-weight:400;letter-spacing:-.005em}
 .logo-b.l2{font-size:calc(var(--s,40px)*.3)}
 .logo-b.l3{font-size:calc(var(--s,40px)*.23)}
 .logo-b.l4{font-size:calc(var(--s,40px)*.19);letter-spacing:-.02em}
-.logo-b img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#fff;padding:14%}
+.logo-b img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:transparent;padding:0;border-radius:inherit}
 .logo-b.gen{background:var(--field);color:var(--fg2);box-shadow:inset 0 0 0 1px var(--line-s)}
 .ent{grid-column:1/-1;display:flex;flex-direction:column;gap:8px;min-width:0}
 .ent .elbl{font-size:12px;font-weight:700;color:var(--fg2);display:flex;align-items:center;gap:8px}
