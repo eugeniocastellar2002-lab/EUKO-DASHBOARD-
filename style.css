@@ -1,63 +1,100 @@
-/* Acceso EUKO: tarjeta de vidrio centrada sobre la misma aurora del panel. */
+/* ---------- 1. TOKENS ---------- */
 :root{
-  /* oscuro por defecto */
-  --bg:#06100e; --bg2:#0a1a16;
-  --fg:#ecfbf6; --fg2:rgba(236,251,246,.70); --fg3:rgba(236,251,246,.48);
-  --g1:rgba(255,255,255,.095); --g2:rgba(255,255,255,.04); --stage1:rgba(255,255,255,.055); --stage2:rgba(255,255,255,.02);
-  --gb:rgba(255,255,255,.17); --rim:rgba(255,255,255,.30); --shadow:0 24px 60px -24px rgba(0,0,0,.65);
-  --line:rgba(255,255,255,.09); --field:rgba(255,255,255,.07);
-  --mint:#5bf0c1; --mint2:#1fc79a; --ink:#042a20; --mint-text:#5bf0c1; --mint-soft:rgba(91,240,193,.16);
-  --c1:#5bf0c1; --c2:#78bfff; --c3:#f7c873; --c4:#b69cff; --c5:#ff8a94; --c6:#f58bd0;
-  --good:#5bf0c1; --warn:#f7c873; --bad:#ff8a94;
-  --blob1:#12d9a3; --blob2:#1d78c4; --blob3:#6a49d6; --blob4:#c58a2a; --blob-o:.5;
-  --btn-dark:rgba(2,10,8,.72); --btn-dark-fg:#ecfbf6;
-  --tip:rgba(8,20,17,.92);
-  color-scheme:dark;--ld:block;--ll:none;
-  --f-d:"Sora","Manrope",system-ui,sans-serif; --f-b:"Manrope",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --bg:#050506; --bg2:#0e0e11;
+  --fg:#f5f5f7; --fg2:rgba(245,245,247,.72); --fg3:rgba(245,245,247,.5);
+  --g1:rgba(255,255,255,.085); --g2:rgba(255,255,255,.028);
+  --card-a:rgba(255,255,255,.07); --card-b:rgba(255,255,255,.026);
+  --stage-a:rgba(255,255,255,.05); --stage-b:rgba(255,255,255,.012);
+  --gb:rgba(255,255,255,.13); --cb:rgba(255,255,255,.09);
+  --rim:rgba(255,255,255,.26); --rim-a:rgba(255,255,255,.55); --rim-b:rgba(255,255,255,.1);
+  --edge-hi:rgba(255,255,255,.2); --edge-lo:rgba(255,255,255,.03); --inner:rgba(255,255,255,.03);
+  --shadow:0 30px 70px -30px rgba(0,0,0,.9); --shadow-sm:0 14px 34px -20px rgba(0,0,0,.85);
+  --line:rgba(255,255,255,.08); --line-s:rgba(255,255,255,.18); --field:rgba(255,255,255,.06);
+  --mint:#f5f5f7; --mint2:#c8c9cf; --ink:#0a0a0b; --mint-text:#ffffff; --mint-soft:rgba(255,255,255,.1);
+  --c1:#43d98c; --c2:#7db4ff; --c3:#f5c04a; --c4:#b79cff; --c5:#ff6f61; --c6:#ff8fc0;
+  --good:#43d98c; --warn:#f5c04a; --bad:#ff6f61;
+  --good-soft:rgba(67,217,140,.14); --warn-soft:rgba(245,192,74,.14); --bad-soft:rgba(255,111,97,.14);
+  --blob1:#7886a6; --blob2:#3c4c70; --blob3:#5a547f; --blob4:#7d6c48; --blob-o:.17;
+  --btn-dark:rgba(255,255,255,.08); --btn-dark-fg:#f5f5f7; --tip:rgba(26,26,30,.96);
+  --lens-a:rgba(255,255,255,.2); --lens-b:rgba(255,255,255,.06); --lens-sh:0 8px 20px -8px rgba(0,0,0,.8);
+  --modal-bg:rgba(18,18,21,.82); --pop-bg:rgba(22,22,26,.97); --dim:rgba(0,0,0,.62);
+  --hero-bg:linear-gradient(150deg,#ffffff,#d8d9de); --hero-fg:#0a0a0b; --hero-fg2:rgba(10,10,11,.64);
+  --ld:block; --ll:none; color-scheme:dark;
+  --f-d:"Inter","Helvetica Neue",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-b:"Inter","Helvetica Neue",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
+  --safe-l:env(safe-area-inset-left,0px); --safe-r:env(safe-area-inset-right,0px);
+  --ease:cubic-bezier(.2,.8,.2,1); --spring:cubic-bezier(.34,1.4,.5,1);
+  --blur:26px; --sat:160%;
 }
 @media (prefers-color-scheme:light){:root:not([data-theme="dark"]){
-  --bg:#e8f4ef; --bg2:#dcefe8;
-  --fg:#0b2a21; --fg2:rgba(11,42,33,.72); --fg3:rgba(11,42,33,.58);
-  --g1:rgba(255,255,255,.78); --g2:rgba(255,255,255,.46); --stage1:rgba(255,255,255,.50); --stage2:rgba(255,255,255,.28);
-  --gb:rgba(255,255,255,.95); --rim:rgba(255,255,255,1); --shadow:0 24px 50px -26px rgba(16,70,55,.35);
-  --line:rgba(11,42,33,.09); --field:rgba(255,255,255,.7);
-  --mint:#27d9a6; --mint2:#0fa97f; --ink:#033327; --mint-text:#0a7d5c; --mint-soft:rgba(15,169,127,.14);
-  --c1:#14c295; --c2:#3b95e0; --c3:#e0a22f; --c4:#8a67e8; --c5:#ee5a68; --c6:#d95fb1;
-  --good:#0a7d5c; --warn:#a56b05; --bad:#c93b4a;
-  --blob1:#5ff0c6; --blob2:#8cc8ff; --blob3:#c3b2ff; --blob4:#ffd98f; --blob-o:.7;
-  --btn-dark:#0d231d; --btn-dark-fg:#ecfbf6; --tip:rgba(11,42,33,.94);
-  color-scheme:light;--ld:none;--ll:block;}}
+  --bg:#e5e7eb; --bg2:#f4f5f8;
+  --fg:#0c0c0e; --fg2:rgba(12,12,14,.74); --fg3:rgba(12,12,14,.62);
+  --g1:rgba(255,255,255,.72); --g2:rgba(255,255,255,.4);
+  --card-a:rgba(255,255,255,.8); --card-b:rgba(255,255,255,.44);
+  --stage-a:rgba(255,255,255,.52); --stage-b:rgba(255,255,255,.24);
+  --gb:rgba(255,255,255,.95); --cb:rgba(255,255,255,.9);
+  --rim:#fff; --rim-a:#fff; --rim-b:rgba(255,255,255,.75);
+  --edge-hi:rgba(255,255,255,.95); --edge-lo:rgba(255,255,255,.55); --inner:rgba(255,255,255,.35);
+  --shadow:0 26px 54px -28px rgba(30,34,48,.36); --shadow-sm:0 12px 28px -18px rgba(30,34,48,.38);
+  --line:rgba(12,12,14,.09); --line-s:rgba(12,12,14,.18); --field:rgba(255,255,255,.7);
+  --mint:#0c0c0e; --mint2:#2c2d31; --ink:#ffffff; --mint-text:#0c0c0e; --mint-soft:rgba(12,12,14,.07);
+  --c1:#12a566; --c2:#2f7be0; --c3:#d99a14; --c4:#7c5ce0; --c5:#e5483b; --c6:#d24f93;
+  --good:#0b8a52; --warn:#8f5d04; --bad:#c93b2e;
+  --good-soft:rgba(18,165,102,.14); --warn-soft:rgba(165,107,5,.15); --bad-soft:rgba(201,59,46,.13);
+  --blob1:#ffffff; --blob2:#b6c5de; --blob3:#d4cbe9; --blob4:#f0dcc2; --blob-o:.75;
+  --btn-dark:#0c0c0e; --btn-dark-fg:#ffffff; --tip:rgba(12,12,14,.94);
+  --lens-a:rgba(255,255,255,.95); --lens-b:rgba(255,255,255,.6); --lens-sh:0 8px 18px -8px rgba(30,34,48,.35);
+  --modal-bg:rgba(244,245,248,.84); --pop-bg:rgba(250,250,252,.98); --dim:rgba(12,12,14,.32);
+  --hero-bg:linear-gradient(150deg,#1e1e22,#0b0b0d); --hero-fg:#ffffff; --hero-fg2:rgba(255,255,255,.7);
+  --ld:none; --ll:block; color-scheme:light;
+}}
 :root[data-theme="light"]{
-  --bg:#e8f4ef; --bg2:#dcefe8;
-  --fg:#0b2a21; --fg2:rgba(11,42,33,.72); --fg3:rgba(11,42,33,.58);
-  --g1:rgba(255,255,255,.78); --g2:rgba(255,255,255,.46); --stage1:rgba(255,255,255,.50); --stage2:rgba(255,255,255,.28);
-  --gb:rgba(255,255,255,.95); --rim:rgba(255,255,255,1); --shadow:0 24px 50px -26px rgba(16,70,55,.35);
-  --line:rgba(11,42,33,.09); --field:rgba(255,255,255,.7);
-  --mint:#27d9a6; --mint2:#0fa97f; --ink:#033327; --mint-text:#0a7d5c; --mint-soft:rgba(15,169,127,.14);
-  --c1:#14c295; --c2:#3b95e0; --c3:#e0a22f; --c4:#8a67e8; --c5:#ee5a68; --c6:#d95fb1;
-  --good:#0a7d5c; --warn:#a56b05; --bad:#c93b4a;
-  --blob1:#5ff0c6; --blob2:#8cc8ff; --blob3:#c3b2ff; --blob4:#ffd98f; --blob-o:.7;
-  --btn-dark:#0d231d; --btn-dark-fg:#ecfbf6; --tip:rgba(11,42,33,.94);
-  color-scheme:light;--ld:none;--ll:block;}
+  --bg:#e5e7eb; --bg2:#f4f5f8;
+  --fg:#0c0c0e; --fg2:rgba(12,12,14,.74); --fg3:rgba(12,12,14,.62);
+  --g1:rgba(255,255,255,.72); --g2:rgba(255,255,255,.4);
+  --card-a:rgba(255,255,255,.8); --card-b:rgba(255,255,255,.44);
+  --stage-a:rgba(255,255,255,.52); --stage-b:rgba(255,255,255,.24);
+  --gb:rgba(255,255,255,.95); --cb:rgba(255,255,255,.9);
+  --rim:#fff; --rim-a:#fff; --rim-b:rgba(255,255,255,.75);
+  --edge-hi:rgba(255,255,255,.95); --edge-lo:rgba(255,255,255,.55); --inner:rgba(255,255,255,.35);
+  --shadow:0 26px 54px -28px rgba(30,34,48,.36); --shadow-sm:0 12px 28px -18px rgba(30,34,48,.38);
+  --line:rgba(12,12,14,.09); --line-s:rgba(12,12,14,.18); --field:rgba(255,255,255,.7);
+  --mint:#0c0c0e; --mint2:#2c2d31; --ink:#ffffff; --mint-text:#0c0c0e; --mint-soft:rgba(12,12,14,.07);
+  --c1:#12a566; --c2:#2f7be0; --c3:#d99a14; --c4:#7c5ce0; --c5:#e5483b; --c6:#d24f93;
+  --good:#0b8a52; --warn:#8f5d04; --bad:#c93b2e;
+  --good-soft:rgba(18,165,102,.14); --warn-soft:rgba(165,107,5,.15); --bad-soft:rgba(201,59,46,.13);
+  --blob1:#ffffff; --blob2:#b6c5de; --blob3:#d4cbe9; --blob4:#f0dcc2; --blob-o:.75;
+  --btn-dark:#0c0c0e; --btn-dark-fg:#ffffff; --tip:rgba(12,12,14,.94);
+  --lens-a:rgba(255,255,255,.95); --lens-b:rgba(255,255,255,.6); --lens-sh:0 8px 18px -8px rgba(30,34,48,.35);
+  --modal-bg:rgba(244,245,248,.84); --pop-bg:rgba(250,250,252,.98); --dim:rgba(12,12,14,.32);
+  --hero-bg:linear-gradient(150deg,#1e1e22,#0b0b0d); --hero-fg:#ffffff; --hero-fg2:rgba(255,255,255,.7);
+  --ld:none; --ll:block; color-scheme:light;
+}
 :root[data-theme="dark"]{
-  --bg:#06100e; --bg2:#0a1a16;
-  --fg:#ecfbf6; --fg2:rgba(236,251,246,.70); --fg3:rgba(236,251,246,.48);
-  --g1:rgba(255,255,255,.095); --g2:rgba(255,255,255,.04); --stage1:rgba(255,255,255,.055); --stage2:rgba(255,255,255,.02);
-  --gb:rgba(255,255,255,.17); --rim:rgba(255,255,255,.30); --shadow:0 24px 60px -24px rgba(0,0,0,.65);
-  --line:rgba(255,255,255,.09); --field:rgba(255,255,255,.07);
-  --mint:#5bf0c1; --mint2:#1fc79a; --ink:#042a20; --mint-text:#5bf0c1; --mint-soft:rgba(91,240,193,.16);
-  --c1:#5bf0c1; --c2:#78bfff; --c3:#f7c873; --c4:#b69cff; --c5:#ff8a94; --c6:#f58bd0;
-  --good:#5bf0c1; --warn:#f7c873; --bad:#ff8a94;
-  --blob1:#12d9a3; --blob2:#1d78c4; --blob3:#6a49d6; --blob4:#c58a2a; --blob-o:.5;
-  --btn-dark:rgba(2,10,8,.72); --btn-dark-fg:#ecfbf6; --tip:rgba(8,20,17,.92);
-  color-scheme:dark;--ld:block;--ll:none;}
+  --bg:#050506; --bg2:#0e0e11;
+  --fg:#f5f5f7; --fg2:rgba(245,245,247,.72); --fg3:rgba(245,245,247,.5);
+  --g1:rgba(255,255,255,.085); --g2:rgba(255,255,255,.028);
+  --card-a:rgba(255,255,255,.07); --card-b:rgba(255,255,255,.026);
+  --stage-a:rgba(255,255,255,.05); --stage-b:rgba(255,255,255,.012);
+  --gb:rgba(255,255,255,.13); --cb:rgba(255,255,255,.09);
+  --rim:rgba(255,255,255,.26); --rim-a:rgba(255,255,255,.55); --rim-b:rgba(255,255,255,.1);
+  --edge-hi:rgba(255,255,255,.2); --edge-lo:rgba(255,255,255,.03); --inner:rgba(255,255,255,.03);
+  --shadow:0 30px 70px -30px rgba(0,0,0,.9); --shadow-sm:0 14px 34px -20px rgba(0,0,0,.85);
+  --line:rgba(255,255,255,.08); --line-s:rgba(255,255,255,.18); --field:rgba(255,255,255,.06);
+  --mint:#f5f5f7; --mint2:#c8c9cf; --ink:#0a0a0b; --mint-text:#ffffff; --mint-soft:rgba(255,255,255,.1);
+  --c1:#43d98c; --c2:#7db4ff; --c3:#f5c04a; --c4:#b79cff; --c5:#ff6f61; --c6:#ff8fc0;
+  --good:#43d98c; --warn:#f5c04a; --bad:#ff6f61;
+  --good-soft:rgba(67,217,140,.14); --warn-soft:rgba(245,192,74,.14); --bad-soft:rgba(255,111,97,.14);
+  --blob1:#7886a6; --blob2:#3c4c70; --blob3:#5a547f; --blob4:#7d6c48; --blob-o:.17;
+  --btn-dark:rgba(255,255,255,.08); --btn-dark-fg:#f5f5f7; --tip:rgba(26,26,30,.96);
+  --lens-a:rgba(255,255,255,.2); --lens-b:rgba(255,255,255,.06); --lens-sh:0 8px 20px -8px rgba(0,0,0,.8);
+  --modal-bg:rgba(18,18,21,.82); --pop-bg:rgba(22,22,26,.97); --dim:rgba(0,0,0,.62);
+  --hero-bg:linear-gradient(150deg,#ffffff,#d8d9de); --hero-fg:#0a0a0b; --hero-fg2:rgba(10,10,11,.64);
+  --ld:block; --ll:none; color-scheme:dark;
+}
 
 
-:root{--line-s:rgba(255,255,255,.2)}
-@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--line-s:rgba(11,42,33,.16)}}
-:root[data-theme="light"]{--line-s:rgba(11,42,33,.16)}
-:root[data-theme="dark"]{--line-s:rgba(255,255,255,.2)}
-*{box-sizing:border-box}
 html,body{min-height:100%;margin:0}
 body{background:var(--bg);color:var(--fg);font-family:var(--f-b);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased;overflow-x:hidden;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
@@ -180,3 +217,57 @@ svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stro
 .field input::-ms-reveal,
 .field input::-ms-clear{display:none}
 .field input::-webkit-credentials-auto-fill-button{visibility:hidden;display:none!important;pointer-events:none}
+
+/* ==========================================================================
+   BLACK LIQUID GLASS · acceso EUKO (mismos colores y cristal que el panel)
+   ========================================================================== */
+body{font-weight:400}
+/* orbes de luz: azul profundo arriba a la izquierda, esmeralda sutil abajo a la derecha */
+:root{--orb1:rgba(32,84,235,1);--orb2:rgba(16,185,129,1);--orb-o1:.2;--orb-o2:.16;--card-bg:linear-gradient(150deg,rgba(24,24,29,.58),rgba(14,14,18,.44));--cbt:rgba(255,255,255,.09);--cbr:rgba(255,255,255,.03);--blob-o:.1}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--orb1:rgba(80,130,255,1);--orb2:rgba(52,211,153,1);--orb-o1:.28;--orb-o2:.24;--card-bg:linear-gradient(150deg,rgba(255,255,255,.66),rgba(255,255,255,.4));--cbt:rgba(255,255,255,.95);--cbr:rgba(255,255,255,.55);--blob-o:.2}}
+:root[data-theme="light"]{--orb1:rgba(80,130,255,1);--orb2:rgba(52,211,153,1);--orb-o1:.28;--orb-o2:.24;--card-bg:linear-gradient(150deg,rgba(255,255,255,.66),rgba(255,255,255,.4));--cbt:rgba(255,255,255,.95);--cbr:rgba(255,255,255,.55);--blob-o:.2}
+:root[data-theme="dark"]{--orb1:rgba(32,84,235,1);--orb2:rgba(16,185,129,1);--orb-o1:.2;--orb-o2:.16;--card-bg:linear-gradient(150deg,rgba(24,24,29,.58),rgba(14,14,18,.44));--cbt:rgba(255,255,255,.09);--cbr:rgba(255,255,255,.03);--blob-o:.1}
+.bg::before,.bg::after{content:"";position:absolute;border-radius:50%;pointer-events:none;transform:translateZ(0)}
+.bg::before{width:78vmax;height:78vmax;left:-26vmax;top:-30vmax;opacity:var(--orb-o1);background:radial-gradient(circle at 50% 50%,var(--orb1) 0%,color-mix(in srgb,var(--orb1) 45%,transparent) 32%,transparent 68%)}
+.bg::after{width:70vmax;height:70vmax;right:-24vmax;bottom:-28vmax;opacity:var(--orb-o2);background:radial-gradient(circle at 50% 50%,var(--orb2) 0%,color-mix(in srgb,var(--orb2) 45%,transparent) 32%,transparent 68%)}
+@media (min-width:901px) and (hover:hover){.bg::before,.bg::after{filter:blur(120px)}}
+/* tarjeta de cristal */
+.login-panel.glass{background:var(--card-bg);border:1px solid var(--cbr);border-top-color:var(--cbt);border-left-color:var(--cbt);-webkit-backdrop-filter:blur(22px) saturate(140%);backdrop-filter:blur(22px) saturate(140%);box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 30px 70px -30px rgba(0,0,0,.85)}
+:root[data-theme="light"] .login-panel.glass{box-shadow:inset 0 1px 0 #fff,0 26px 54px -28px rgba(30,34,48,.36)}
+.login-panel::before{background:conic-gradient(from var(--ang,0deg),transparent 0 72%,rgba(255,255,255,.7) 86%,transparent 100%);opacity:.4}
+.logo-f .ld{filter:drop-shadow(0 0 16px rgba(255,255,255,.18))}
+.login-panel h1,.done h2,.keyhead h2{font-family:var(--f-d);font-weight:700;letter-spacing:-.025em}
+.field input{background:var(--field);border-color:var(--line-s);font-weight:500}
+.field input:focus{border-color:var(--fg);box-shadow:0 0 0 4px var(--mint-soft)}
+.field input:focus~.field-icon{color:var(--fg)}
+.chk input:checked+.box{background:var(--fg);border-color:var(--fg);color:var(--bg)}
+.link{color:var(--fg);opacity:.85}
+.login-button{background:linear-gradient(150deg,#ffffff,#d8d9de);color:#0a0a0b;box-shadow:0 14px 30px -14px rgba(255,255,255,.35),inset 0 1px 0 #fff;font-weight:700}
+:root[data-theme="light"] .login-button{background:linear-gradient(150deg,#1e1e22,#0b0b0d);color:#fff;box-shadow:0 14px 28px -14px rgba(0,0,0,.5)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]) .login-button{background:linear-gradient(150deg,#1e1e22,#0b0b0d);color:#fff;box-shadow:0 14px 28px -14px rgba(0,0,0,.5)}}
+.login-button:hover:not(:disabled){box-shadow:0 18px 36px -12px rgba(255,255,255,.4)}
+.login-button .spin{border-color:rgba(10,10,11,.25);border-top-color:#0a0a0b}
+:root[data-theme="light"] .login-button .spin{border-color:rgba(255,255,255,.3);border-top-color:#fff}
+.message.success{color:var(--good)}
+.done .c,.done .t{stroke:var(--good)}
+.login-panel.ok{box-shadow:inset 0 1px 0 var(--rim),0 0 0 1px var(--good),0 0 60px -6px color-mix(in srgb,var(--good) 45%,transparent)}
+/* ingreso con Google */
+.divider{display:flex;align-items:center;gap:12px;color:var(--fg3);font-size:12.5px;font-weight:600;margin:18px 0 14px}
+.divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--line-s)}
+.gbutton{position:relative;width:100%;height:54px;border-radius:18px;display:flex;align-items:center;justify-content:center;gap:12px;font-weight:600;font-size:15px;color:var(--fg);background:var(--field);border:1px solid var(--line-s);transition:transform .25s,background .25s,border-color .25s;overflow:hidden}
+.gbutton:hover:not(:disabled){background:var(--g1);transform:translateY(-1px)}
+.gbutton:active:not(:disabled){transform:scale(.98)}
+.gbutton:disabled{cursor:not-allowed;opacity:.6}
+.gbutton svg{width:20px;height:20px;flex:none}
+.gbutton .spin{position:absolute;inset:0;margin:auto;width:20px;height:20px;border-radius:50%;border:2.5px solid var(--line-s);border-top-color:var(--fg);opacity:0;animation:rot .7s linear infinite}
+.gbutton.loading .lbl,.gbutton.loading svg{opacity:0}
+.gbutton.loading .spin{opacity:1}
+.gnote{margin-top:10px;text-align:center;font-size:12px;color:var(--fg3);text-wrap:balance}
+.keyhead{text-align:center;margin-bottom:16px}
+.keyhead h2{font-size:22px}
+.keyhead p{color:var(--fg2);font-size:13.5px;margin-top:6px;text-wrap:balance}
+.keyhead .gmail{display:inline-flex;align-items:center;gap:8px;margin-top:10px;padding:6px 12px 6px 8px;border-radius:999px;background:var(--field);border:1px solid var(--line-s);font-size:12.5px;font-weight:600;color:var(--fg)}
+.keyhead .gmail svg{width:16px;height:16px}
+#key-form{display:flex;flex-direction:column;gap:14px}
+#key-form .login-button{margin-top:4px}
+.backlink{align-self:center}
