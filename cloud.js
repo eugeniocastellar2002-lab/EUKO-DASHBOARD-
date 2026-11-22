@@ -70,7 +70,7 @@
   function status(s, msg) { if (api && api.status) api.status(s, msg || ''); }
 
   /* ---------- soportes (archivos) ---------- */
-  var FCHUNK = 600000, fp = null;   // caracteres base64 por documento
+  var FCHUNK = 600000, fp = null, again = false;   // caracteres base64 por documento
   function fdoc(id) { return S.F.doc(S.db, 'users', ctx.uid, 'files', id); }
   function fchunk(id, i) { return S.F.doc(S.db, 'users', ctx.uid, 'files', id, 'c', String(i)); }
   function toB64(blob) {
@@ -114,7 +114,7 @@
   }
   /* Sube los soportes que solo están aquí, baja los que solo están en la nube y borra de la nube los quitados. */
   function syncFiles() {
-    if (fp) return fp;
+    if (fp) { again = true; return fp; }
     if (!ctx || !ctx.ok || !ctx.linked || !api.fget || !api.fput) return Promise.resolve(false);
     var metas = (api.getState().files || []), ids = {}, up = (st().up || []).slice(), upSet = {}, got = false;
     metas.forEach(function (m) { ids[m.id] = 1; });
@@ -145,9 +145,19 @@
         return removeCloud(id).then(function () { up.splice(up.indexOf(id), 1); }).catch(function () {});
       });
     });
-    fp = chain.then(function () { setSt({ up: up }); fp = null; if (got && api.filesReady) api.filesReady(); return true; },
-      function () { fp = null; return false; });
+    fp = chain.then(function () {
+      setSt({ up: up }); fp = null; if (got && api.filesReady) api.filesReady();
+      if (again) { again = false; return syncFiles(); }
+      return true;
+    }, function () { fp = null; return false; });
     return fp;
+  }
+  /* Baja un soporte justo cuando se abre (si todavía no está en este dispositivo). */
+  function fetchFile(id) {
+    if (!ctx || !ctx.ok || !api) return Promise.resolve(false);
+    var m = (api.getState().files || []).filter(function (x) { return x.id === id; })[0];
+    if (!m) return Promise.resolve(false);
+    return cloudHas(id).then(function (d) { return d ? download(m, d).then(function () { return true; }) : false; }).catch(function () { return false; });
   }
 
   /* ---------- leer y escribir en la nube ---------- */
@@ -259,8 +269,8 @@
     }).catch(function () { status('error', 'Sin conexión'); });
   }
   function flush() { if (ctx && ctx.ok && ctx.linked && st().dirty && !pushing) { clearTimeout(timer); push(); } }
-  document.addEventListener('visibilitychange', function () { if (document.hidden) flush(); });
+  document.addEventListener('visibilitychange', function () { if (document.hidden) flush(); else syncFiles(); });
   window.addEventListener('pagehide', flush);
 
-  window.EUKOCloud = { allowed: ALLOWED, signInGoogle: signInGoogle, signOut: signOut, start: start, changed: changed, syncNow: syncNow };
+  window.EUKOCloud = { allowed: ALLOWED, signInGoogle: signInGoogle, signOut: signOut, start: start, fetchFile: fetchFile, changed: changed, syncNow: syncNow };
 })();
