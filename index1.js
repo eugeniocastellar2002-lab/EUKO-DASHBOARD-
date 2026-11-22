@@ -235,16 +235,18 @@ function cloudBoxInner(){
   const cs=cloudSession();
   if(!cs)return '<h3>Sincronización en la nube</h3><p>Estás en sesión <b>local</b>: tus datos viven solo en este dispositivo. Para tener los mismos datos en todos tus dispositivos, cierra sesión y entra con <b>Google</b>.</p>';
   const txt={connecting:'Conectando…',pending:'Subiendo cambios…',synced:'Todo sincronizado',error:cloudMsg||'Sin conexión',off:cloudMsg==='cancel'?'Sincronización en pausa (elegiste no sincronizar)':'No se pudo iniciar la sincronización. Cierra sesión y vuelve a entrar con Google.'}[cloudSt]||'…';
-  return '<h3>Sincronización en la nube</h3><p>Cuenta: <b>'+esc(cs.email||'')+'</b><br>Estado: <b>'+esc(txt)+'</b></p><p style="font-size:12.5px;color:var(--fg3)">Se sincronizan clientes, movimientos, tareas, metas y presupuestos. Los comprobantes (archivos) se quedan en cada dispositivo: respáldalos con el .json.</p><div class="setrow"><button class="btn ghost" data-act="cloudNow">Sincronizar ahora</button></div>';
+  return '<h3>Sincronización en la nube</h3><p>Cuenta: <b>'+esc(cs.email||'')+'</b><br>Estado: <b>'+esc(txt)+'</b></p><p style="font-size:12.5px;color:var(--fg3)">Se sincronizan clientes, movimientos, tareas, metas, presupuestos y los soportes (fotos y PDF).</p><div class="setrow"><button class="btn ghost" data-act="cloudNow">Sincronizar ahora</button></div>';
 }
 let pendingChoice=null;
 const cloudApi={
-  getState:()=>({clients:S.clients,transactions:S.transactions,tasks:S.tasks,settings:S.settings}),
+  getState:()=>({clients:S.clients,transactions:S.transactions,tasks:S.tasks,files:S.files,settings:S.settings}),
+  fget:id=>fget(id),fput:(id,b)=>fput(id,b),
+  filesReady:()=>{try{render(false);if(typeof refreshFiles==='function')refreshFiles()}catch(e){}},
   hasData:()=>S.clients.length+S.transactions.length+S.tasks.length>0,
   apply:o=>{
     const n=sanitize(o);applyingRemote=true;
     try{S.clients=n.clients;S.transactions=n.transactions;S.tasks=n.tasks;S.settings=n.settings;
-      const owners=new Set(S.clients.map(c=>'client:'+c.id).concat(S.transactions.map(x=>'tx:'+x.id)));S.files=S.files.filter(f=>owners.has(f.owner));
+      const owners=new Set(S.clients.map(c=>'client:'+c.id).concat(S.transactions.map(x=>'tx:'+x.id)));S.files=n.files;
       undoStack.length=0;save(true)}
     finally{applyingRemote=false}
     render(false);
