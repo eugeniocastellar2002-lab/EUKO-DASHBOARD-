@@ -239,12 +239,13 @@ function cloudBoxInner(){
 }
 let pendingChoice=null;
 const cloudApi={
-  getState:()=>({clients:S.clients,transactions:S.transactions,tasks:S.tasks,files:S.files,settings:S.settings}),
+  getState:()=>({clients:S.clients,transactions:S.transactions,tasks:S.tasks,files:S.files,settings:S.settings,profile:PF}),
   fget:id=>fget(id),fput:(id,b)=>fput(id,b),
   filesReady:()=>{try{render(false);if(typeof refreshFiles==='function')refreshFiles()}catch(e){}},
   hasData:()=>S.clients.length+S.transactions.length+S.tasks.length>0,
   apply:o=>{
     const n=sanitize(o);applyingRemote=true;
+    if(o&&o.profile&&typeof o.profile==='object'){const q=o.profile;PF={name:String(q.name||'').slice(0,40),code:String(q.code||'').slice(0,24),photo:okPhoto(q.photo)};try{localStorage.setItem(PFK,JSON.stringify(PF))}catch(e){}try{applyProfile()}catch(e){}}
     try{S.clients=n.clients;S.transactions=n.transactions;S.tasks=n.tasks;S.settings=n.settings;
       const owners=new Set(S.clients.map(c=>'client:'+c.id).concat(S.transactions.map(x=>'tx:'+x.id)));S.files=n.files;
       undoStack.length=0;save(true)}
@@ -913,7 +914,8 @@ let viewerUrl='';
 async function viewFile(id,isDraft){
   const f=isDraft?draft.find(x=>x.id===id):S.files.find(x=>x.id===id);if(!f)return;
   let blob=null;try{blob=isDraft?f.blob:await fget(id)}catch(e){}
-  if(!blob){toast('No se encontró el archivo en este navegador');return}
+  if(!blob&&!isDraft&&window.EUKOCloud&&cloudSession()){toast('Descargando de la nube…');try{if(await EUKOCloud.fetchFile(id))blob=await fget(id)}catch(e){}}
+  if(!blob){toast(window.EUKOCloud&&cloudSession()?'Aún no está en la nube. Ábrelo una vez en el dispositivo donde lo subiste.':'No se encontró el archivo en este navegador');return}
   closeViewer();viewerUrl=URL.createObjectURL(blob);
   const v=$('#viewer');
   v.innerHTML='<div class="vbar"><div class="grow"><b>'+esc(f.name)+'</b><small>'+esc(f.kind)+' · '+fdate(f.date)+' · '+fsize(f.size)+'</small></div><a class="iconbtn" href="'+viewerUrl+'" download="'+esc(f.name)+'" aria-label="Descargar">'+ico('download')+'</a><button class="iconbtn" data-act="closeViewer" aria-label="Cerrar">'+ico('x')+'</button></div>'
@@ -1191,6 +1193,7 @@ document.addEventListener('submit',async e=>{
   if(k==='profile'){
     PF={name:str(v.name).slice(0,40),code:str(v.code).slice(0,24),photo:okPhoto(v.photo)};
     try{localStorage.setItem(PFK,JSON.stringify(PF))}catch(e){toast('No se pudo guardar el perfil en este navegador');return}
+    if(window.EUKOCloud&&cloudSession())EUKOCloud.changed();
     applyProfile();ovDirty=false;closeOverlay(true);toast('Perfil actualizado');haptic('success');return;
   }
   if(k==='budgets'){
